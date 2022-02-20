@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ventas</title>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css">
+		
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-vue/2.21.2/bootstrap-vue.min.js"></script>
+		
+	<link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap-vue@2.21.2/dist/bootstrap-vue.min.css" />
+	
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+	<link rel="stylesheet" href="https://unpkg.com/vue-multiselect@2.1.0/dist/vue-multiselect.min.css">
+
+    <script src="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue-icons.min.js"></script>
+
+
+</head>
+<body>
+    <div id="app">
+        <b-container fluid>
+            <b-row class="my-2">
+                <b-col lg="12">
+                    <b-card 
+                            header-tag="header" 
+                            footer-tag="footer" 
+                            border-variant="light" 
+                            header-bg-variant="transparent"
+                            class="shadow-sm"
+                            >
+                        <template v-slot:header>
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-0 text-info">
+                                   VENTAS
+                                </h5>
+                                <b-button v-b-modal.modal-1 variant="info" @click="onReset">NUEVA VENTA</b-button>
+                                
+                            </div>
+                        </template>
+
+                        <div class="overflow-auto d-flex flex-column align-items-center">
+                            <!-- START TABLE -->
+                            <b-table
+                                 id="table-client"
+                                 :items="items"
+                                 :fields="fields"
+                                 hover
+                                 :busy="busy"
+                                 show-empty
+                                 head-variant="light"
+                            >
+                                <!-- START LOANDING -->
+                                <template v-slot:table-busy>
+                                    <div class="text-center  text-primary my-2">
+                                        <b-spinner class="align-middle"></b-spinner>
+                                        <strong>Cargando registros...</strong>
+                                    </div>
+                                </template>
+                                <!-- END LOANDING -->
+                                
+                            
+                                <!-- START EMPTY DATA -->
+                                <template #empty="scope">
+                                    <div role="alert" aria-live="polite">
+                                        <div class="text-center my-2">De momento no hay datos para mostrar.</div>
+                                    </div>
+                                </template>
+                                <!-- END EMPTY DATA -->
+                                
+                                
+                            </b-table>
+                            <!-- END TABLE -->
+                            
+                            <!--START MODAL ADD PRODUCT -->
+                            <b-modal id="modal-1" title="AGREGAR VENTA" :hide-footer="true" ref="modal-add">
+                                <template>
+                                    <div>
+                                      <b-form @submit="onSubmit" @reset="onReset()" >
+                                        <b-form-group id="input-group-2" label="SELECCIONAR PRODUCTO:" label-for="input-id-producto"></b-form-group>
+                                            <b-form-select  id="input-id-producto" v-model="selectedProductos" :options="itemsProductos" @change="buscarVendedor()" required></b-form-select>
+                                        
+                                        <b-form-group id="input-group-2" label="PRECIO:" label-for="input-precio">
+                                                <b-form-input
+                                                id="input-precio"
+                                                type="number"
+                                                v-model="precioProducto"
+                                                readonly
+                                            ></b-form-input>
+
+                                            <b-form-group id="input-group-2" label="STOCK ACTUAL:" label-for="input-stock">
+                                                <b-form-input
+                                                id="input-stock"
+                                                type="number"
+                                                v-model="stock"
+                                                readonly
+                                            ></b-form-input>
+
+                                        <b-form-group id="input-group-2" label="CANTIDAD:" label-for="input-cantidad">
+                                            <b-form-input
+                                            id="input-cantidad"
+                                            type="number"
+                                            v-model="form.cantidad"
+                                            @change="calcularTotal"
+                                            placeholder="Ingrese cantidad"
+                                            required
+                                        ></b-form-input>
+                                        <b-form-group id="input-group-2" label="TOTAL:" label-for="input-total">
+                                            <b-form-input
+                                            id="input-total"
+                                            type="number"
+                                            v-model="totalVenta"
+                                            readonly
+                                            required
+                                        ></b-form-input>
+                                        </b-form-group>
+                                       
+                                            <b-button type="submit" variant="primary">Guardar</b-button>
+                                            <b-button type="reset" variant="danger">Limpiar</b-button>
+                                      </b-form>
+                                    </div>
+                                  </template>
+                            </b-modal>
+                            <!--END MODAL ADD PRODUCT-->
+                        </div>
+                    </b-card>
+                </b-col>
+            </b-row>
+        </b-container>
+    </div>
+
+    <script>
+
+           
+
+            const app = new Vue({
+            el: "#app",
+            data: {
+                fields: [
+                        { key: 'id', label: 'ID', sortable: true, thClass: 'bg-info text-white' },
+                        { key: 'id_producto', label: 'ID PRODUCTO', sortable: true, thClass: 'bg-info text-white' },
+                        { key: 'cantidad', label: 'CANTIDAD', sortable: true, thClass: 'bg-info text-white' },
+                        { key: 'total', label: 'TOTAL VENTA', sortable: true, thClass: 'bg-info text-white' },
+                      
+                    ],
+                busy: true,
+                items: [],
+                itemsProductos:[],
+                selectedProductos:'',
+                precioProducto:0,
+                stock:0,
+                venta_id : 0,
+                cantidadProducto:0,
+                disminuirStock:0,
+                totalVenta: 0,
+               
+                form: {
+                    id: '',
+                    cantidad: '',
+                },
+               
+            },
+            methods: {
+                fetchData() {
+                    fetch('http://localhost:8080/api/ventas/all')
+                    .then(response => response.json())
+                      .then(data => {
+                        this.busy = false;
+                        this.items = data;
+            
+                      })
+                      .catch(error => {
+                        this.busy = false;
+                        console.error(error);
+                      });
+                },
+                onSubmit(event) {
+                    event.preventDefault()
+                    this.postData(this.form);
+                  },
+               
+                postData(form) {
+
+                    if(form.cantidad <= 0) {
+                        alert('cantidad invalidad')
+
+                    } else {
+
+                        if(this.stock >= form.cantidad) {
+
+                            this.disminuirStock = this.stock - form.cantidad;
+                            fetch("http://localhost:8080/api/ventas/new", {
+                            headers: {
+                            'Content-Type': 'application/json'
+                            },
+                            method: "POST",
+                            body: JSON.stringify({
+                                "id_producto": this.selectedProductos,
+                                "cantidad": form.cantidad,
+                                "total": this.totalVenta,
+                            
+                                
+                            })
+                            })
+                            .then(response => {
+                            this.$refs["modal-add"].hide();
+                            this.EditData();
+                            this.fetchData();
+                            location.reload();
+                            })
+                            .catch(err => {
+                            console.log(err);
+                            });
+                            }else {
+
+                            alert('No se puede realizar la venta, no hay productos suficientes')
+                            }
+
+                    }
+
+                    
+                  },
+                fetchProductos() {
+                    fetch('http://localhost:8080/api/productos/all')
+                    .then(response => response.json())
+                      .then(data => {
+                        this.itemsProductos = this.formatArray(data);
+                      })
+                      .catch(error => {
+                        console.error(error);
+                      });
+                },
+
+                fetchProductoById() {
+                    fetch('http://localhost:8080/api/productos/buscar/'+ this.selectedProductos)
+                    .then(response => response.json())
+                      .then(data => {
+                        this.stock = data.stock;
+                        this.precioProducto = data.precio;
+                      })
+                      .catch(error => {
+                        console.error(error);
+                      });
+                },
+
+                EditData(form) {
+                    fetch("http://localhost:8080/api/productos/update", {
+                        headers: {
+                          'Content-Type': 'application/json'
+                        },
+                        method: "PUT",
+                        body: JSON.stringify({
+                            "id": this.selectedProductos,
+                            "stock": this.disminuirStock,
+                        })
+                    })
+                    .then(response =>  this.fetchData())
+                    .catch(err => {
+                        console.log(err);
+                    });
+                   
+                  },
+
+                formatArray(arreglo) {
+                    let mapa = {};
+                    let nuevo = [];
+                    for (var i in arreglo) {
+                        mapa = {
+                            value: arreglo[i].id,
+                            text: arreglo[i].nombre,
+                        }
+                        nuevo.push(mapa);
+                    }
+
+                    return nuevo;
+                  },
+                  buscarVendedor(){
+                      console.log(this.selectedProductos);
+                      this.fetchProductoById();
+                  },
+
+                  calcularTotal(){
+                    this.totalVenta = this.precioProducto * this.form.cantidad;
+                  },
+
+                onReset(event) {
+                        event.preventDefault();
+                        this.form.id = '';
+                        this.form.cantidad = '';
+                        this.precioProducto = 0,
+                        this.stock = 0;					
+                      },
+            },
+            computed: {
+                
+
+            },
+            mounted() {
+                this.fetchData();
+                this.fetchProductos();
+            }
+        });
+    </script>
+</body>
+</html>

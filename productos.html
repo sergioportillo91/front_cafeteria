@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>productos</title>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css">
+		
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-vue/2.21.2/bootstrap-vue.min.js"></script>
+		
+	<link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap-vue@2.21.2/dist/bootstrap-vue.min.css" />
+	
+    <script src="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue-icons.min.js"></script>
+
+
+</head>
+<body>
+    <div id="app">
+        <b-container fluid>
+            <b-row class="my-2">
+                <b-col lg="12">
+                    <b-card 
+                            header-tag="header" 
+                            footer-tag="footer" 
+                            border-variant="light" 
+                            header-bg-variant="transparent"
+                            class="shadow-sm"
+                            >
+                        <template v-slot:header>
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-0 text-info">
+                                   LISTADO PRODUCTOS
+                                </h5>
+                                <b-button v-b-modal.modal-1 variant="info" @click="onReset">NUEVO PRODUCTO</b-button>
+                                
+                                
+                            </div>
+                        </template>
+
+                        <div class="overflow-auto d-flex flex-column align-items-center">
+                            <!-- START TABLE -->
+                            <b-table
+                                 id="table-client"
+                                 :items="items"
+                                 :fields="fields"
+                                 hover
+                                 :busy="busy"
+                                 show-empty
+                                 head-variant="light"
+                            >
+                                <!-- START LOANDING -->
+                                <template v-slot:table-busy>
+                                    <div class="text-center  text-primary my-2">
+                                        <b-spinner class="align-middle"></b-spinner>
+                                        <strong>Cargando registros...</strong>
+                                    </div>
+                                </template>
+                                <!-- END LOANDING -->
+                                
+                                <template #cell(acciones)="row" > 
+                                    <b-button variant="light" size="sm"> 
+                                        <b-icon icon="pencil-square" scale="1" v-b-tooltip.hover title="Editar" @click="getClient(row)"></b-icon>
+                                    </b-button> 
+                                    <b-button variant="light" size="sm"> 
+                                        <b-icon icon="trash-fill" scale="1" v-b-tooltip.hover title="Eliminar" @click="DeleteConfirmation(row)"></b-icon>
+                                    </b-button> 
+                                </template>	
+
+                             
+
+                                <!-- START EMPTY DATA -->
+                                <template #empty="scope">
+                                    <div role="alert" aria-live="polite">
+                                        <div class="text-center my-2">De momento no hay datos para mostrar.</div>
+                                    </div>
+                                </template>
+                                <!-- END EMPTY DATA -->
+                                
+                                
+                            </b-table>
+                            <!-- END TABLE -->
+                            
+                            <!--START MODAL ADD PRODUCT -->
+                            <b-modal id="modal-1" title="AGREGAR PRODUCTO" :hide-footer="true" ref="modal-add">
+                                <template>
+                                    <div>
+                                      <b-form @submit="onSubmit" @reset="onReset" >
+                                       
+                                        <b-form-group id="input-group-2" label="NOMBRE:" label-for="input-name">
+                                            <b-form-input
+                                                id="input-name"
+                                                type="text"
+                                                v-model="form.nombre"
+                                                placeholder="Ingrese nombre"
+                                                required
+                                            ></b-form-input>
+                                        </b-form-group>
+                                        <b-form-group id="input-group-2" label="SELECCIONE CATEGORIA:" label-for="input-categoria">
+                                        <b-form-select  id="input-categoria" v-model="selectedCategoria" :options="itemsCategorias" required></b-form-select>
+                                    
+                                        <b-form-group id="input-group-2" label="REF:" label-for="input-ref">
+                                                <b-form-input
+                                                    id="input-ref"
+                                                    type="text"
+                                                    v-model="form.referencia"
+                                                    placeholder="Ingrese ref"
+                                                    required
+                                                ></b-form-input>
+                                        </b-form-group>
+                                        <b-form-group id="input-group-2" label="PRECIO:" label-for="input-precio">
+                                                    <b-form-input
+                                                        id="input-precio"
+                                                        type="number"
+                                                        v-model="form.precio"
+                                                        placeholder="Ingrese precio"
+                                                        required
+                                                    ></b-form-input>
+                                        </b-form-group>
+                                        <b-form-group id="input-group-2" label="PESO:" label-for="input-peso">
+                                            <b-form-input
+                                                id="input-peso"
+                                                type="number"
+                                                v-model="form.peso"
+                                                placeholder="Ingrese peso"
+                                                required
+                                            ></b-form-input>
+                                        </b-form-group>
+                                        <b-form-group id="input-group-2" label="STOCK:" label-for="input-stock">
+                                            <b-form-input
+                                                id="input-stock"
+                                                type="number"
+                                                v-model="form.stock"
+                                                placeholder="Ingrese stock"
+                                                required
+                                            ></b-form-input>
+                                        </b-form-group>
+                                        <b-form-group id="input-group-2" label="FECHA CREACION:" label-for="input-fecha">
+                                            <b-form-input
+                                                id="input-fecha"
+                                                type="text"
+                                                v-model="form.fecha"
+                                                placeholder="aa-mm-dd"
+                                                required
+                                            ></b-form-input>
+                                        </b-form-group>
+                                            <b-button type="submit" variant="primary">Guardar</b-button>
+                                            <b-button type="reset" variant="danger">Limpiar</b-button>
+                                      </b-form>
+                                    </div>
+                                  </template>
+                            </b-modal>
+                            <!--END MODAL ADD PRODUCT-->
+
+                            <!--START MODAL EDIT PRODUCT -->
+                            <b-modal id="modal-editar" title="EDITAR PRODUCTO" :hide-footer="true" ref="modal-edit">
+                                <template>
+                                    <div>
+                                        <b-form @submit="onSubmitEdit(event)" @reset="onReset(event)" >
+                                            <b-form-group id="input-group-2" label="ID:" label-for="input-id">
+                                                <b-form-input
+                                                id="input-id"
+                                                type="number"
+                                                v-model="form.id"
+                                                placeholder="Ingrese ID"
+                                                required
+                                                readonly
+                                                ></b-form-input>
+                                            </b-form-group>
+                                            <b-form-group id="input-group-2" label="NOMBRE:" label-for="input-name">
+                                                <b-form-input
+                                                    id="input-name"
+                                                    type="text"
+                                                    v-model="form.nombre"
+                                                    placeholder="Ingrese nombre"
+                                                    required
+                                                ></b-form-input>
+                                            </b-form-group>
+                                            <b-form-group id="input-group-2" label="SELECCIONE CATEGORIA:" label-for="input-categoria">
+                                                <b-form-select  id="input-categoria" v-model="selectedCategoria" :options="itemsCategorias" required></b-form-select>
+                                            <b-form-group id="input-group-2" label="REF:" label-for="input-ref">
+                                                    <b-form-input
+                                                        id="input-ref"
+                                                        type="text"
+                                                        v-model="form.referencia"
+                                                        placeholder="Ingrese ref"
+                                                        required
+                                                    ></b-form-input>
+                                            </b-form-group>
+                                            <b-form-group id="input-group-2" label="PRECIO:" label-for="input-precio">
+                                                        <b-form-input
+                                                            id="input-precio"
+                                                            type="number"
+                                                            v-model="form.precio"
+                                                            placeholder="Ingrese precio"
+                                                            required
+                                                        ></b-form-input>
+                                            </b-form-group>
+                                            <b-form-group id="input-group-2" label="PESO:" label-for="input-peso">
+                                                <b-form-input
+                                                    id="input-peso"
+                                                    type="number"
+                                                    v-model="form.peso"
+                                                    placeholder="Ingrese peso"
+                                                    required
+                                                ></b-form-input>
+                                            </b-form-group>
+                                            <b-form-group id="input-group-2" label="STOCK:" label-for="input-stock">
+                                                <b-form-input
+                                                    id="input-stock"
+                                                    type="number"
+                                                    v-model="form.stock"
+                                                    placeholder="Ingrese stock"
+                                                    required
+                                                ></b-form-input>
+                                            </b-form-group>
+                                            <b-form-group id="input-group-2" label="FECHA CREACION:" label-for="input-fecha">
+                                                <b-form-input
+                                                    id="input-fecha"
+                                                    type="text"
+                                                    v-model="form.fecha"
+                                                    placeholder="aa-mm-dd"
+                                                    required
+                                                ></b-form-input>
+                                            </b-form-group>
+                                            <b-button type="submit" variant="primary">Editar</b-button>
+                                        </b-form>
+                                    </div>
+                                    </template>
+                            </b-modal>
+                            <!--END EDIT ADD PRODUCT-->
+
+                            <!--MODAL CONFIRMATION DELETE PRODUCT-->
+
+                            <b-modal 
+                                    id="modal-delete" 
+                                    title="Mensaje de Eliminacion" 
+                                    ref="modal-delete"
+                                    ok-title="Eliminar"
+                                    ok-only
+                                    @ok="Delete"
+                                    >
+                                <div class="text-center">
+                                    <p class="my-4 h4">¿Desea eliminar el registro?</p>
+                                </div>
+                              </b-modal>
+                            <!--MODAL CONFIRMATION DELETE PRODUCT-->
+                        </div>
+                    </b-card>
+                </b-col>
+            </b-row>
+        </b-container>
+    </div>
+
+    <script>
+            const app = new Vue({
+            el: "#app",
+            data: {
+                fields: [
+                        { key: 'id', label: 'ID', sortable: true, thClass: 'bg-info text-white' },
+                        { key: 'nombre', label: 'NOMBRE', sortable: true, thClass: 'bg-info text-white' },
+                        { key: 'referencia', label: 'REF', sortable: true, thClass: 'bg-info text-white'},
+                        { key: 'precio', label: 'PRECIO', sortable: true , thClass: 'bg-info text-white'},
+                        { key: 'peso', label: 'PESO', sortable: true , thClass: 'bg-info text-white'},
+                        { key: 'stock', label: 'STOCK', sortable: true , thClass: 'bg-info text-white'},
+                        { key: 'fecha', label: 'FECHA CREACION', sortable: true , thClass: 'bg-info text-white'},
+                        { key: 'acciones', label: 'ACCIONES', thClass: 'bg-info text-white' },
+                        
+                    ],
+                busy: true,
+                items: [],
+                itemsCategorias:[],
+                selectedCategoria: '',
+                id_producto : 0,
+                form: {
+                    id: '',
+                    nombre: '',
+                    referencia: '',
+                    precio: '',
+                    peso: '',
+                    stock: '',
+                    fecha: '',
+                    categoria:{"id_categoria":''}
+                   
+                },
+            },
+            methods: {
+                fetchData() {
+                    fetch('http://localhost:8080/api/productos/all')
+                    .then(response => response.json())
+                      .then(data => {
+                        this.busy = false;
+                        this.items = data;
+                        console.log(data);
+                      })
+                      .catch(error => {
+                        this.busy = false;
+                        console.error(error);
+                      });
+                },
+                fetchCategorias() {
+                    fetch('http://localhost:8080/api/categorias/all')
+                    .then(response => response.json())
+                      .then(data => {
+                        this.itemsCategorias= this.formatArray(data);
+                      })
+                      .catch(error => {
+                      
+                        console.error(error);
+                      });
+                },
+                onSubmit(event) {
+                    event.preventDefault()
+                    this.postData(this.form);
+                  },
+                onSubmitEdit(event) {
+                    event.preventDefault()
+                    this.EditData(this.form);
+                  },
+                postData(form) {
+                    fetch("http://localhost:8080/api/productos/new", {
+                        headers: {
+                          'Content-Type': 'application/json'
+                        },
+                        method: "POST",
+                        body: JSON.stringify({
+
+                            "nombre": form.nombre,
+                            "referencia": form.referencia,
+                            "precio": form.precio,
+                            "peso": form.peso,
+                            "stock": form.stock,
+                            "fecha": form.stock,
+                            "categoria": {
+                                "id_categoria": this.selectedCategoria,  
+                            }
+                        })
+                    })
+                    .then(response => {
+                        this.$refs["modal-add"].hide();
+                        this.fetchData();
+                    })
+                    .catch(err => {
+                        console.log(err);
+                    });
+                  },
+
+                  formatArray(arreglo) {
+                    let mapa = {};
+                    let nuevo = [];
+                    for (var i in arreglo) {
+                        mapa = {
+                            value: arreglo[i].id_categoria,
+                            text: arreglo[i].nombre,
+                        }
+                        nuevo.push(mapa);
+                    }
+
+                    return nuevo;
+                  },
+                EditData(form) {
+                    fetch("http://localhost:8080/api/productos/update", {
+                        headers: {
+                          'Content-Type': 'application/json'
+                        },
+                        method: "PUT",
+                        body: JSON.stringify({
+                            "id": form.id,
+                            "nombre": form.nombre,
+                            "referencia": form.referencia,
+                            "precio": form.precio,
+                            "peso": form.peso,
+                            "stock": form.stock,
+                            "fecha": form.fecha,
+                            "categoria": {"id_categoria":this.selectedCategoria }
+
+                        })
+                    })
+                    .then(response =>  this.fetchData())
+                    .catch(err => {
+                        console.log(err);
+                    });
+
+                    this.$refs["modal-edit"].hide();
+                    //this.onReset();
+                  },
+                getClient(row) {
+                        this.form.id = row.item.id;
+                        this.form.nombre = row.item.nombre;
+                        this.form.referencia = row.item.referencia;
+                        this.form.precio = row.item.precio;
+                        this.form.peso = row.item.peso;
+                        this.form.stock = row.item.stock;
+                        this.form.fecha = row.item.fecha;
+                        this.form.categoria.id_categoria = row.item.categoria.id_categoria;
+                        this.$refs["modal-edit"].show();
+                  },
+                onReset(event) {
+                        event.preventDefault();
+                        this.form.id = '';
+                        this.form.nombre = '';
+                        this.form.referencia = '';
+                        this.form.precio = '';
+                        this.form.peso = '';	
+                        this.form.stock = '';	
+                        this.form.fecha = '';
+                        this.form.categoria.id_categoria = '';							
+                      },
+                DeleteConfirmation(row) {
+                    this.$refs["modal-delete"].show();
+                    this.id_producto = row.item.id;
+                    
+                },
+                Delete() {
+                    fetch("http://localhost:8080/api/productos/"+ this.id_producto, {
+                        
+                    })
+                    .then(response =>  this.fetchData())
+                    .catch(err => {
+                        console.log(err);
+                    });
+                },
+            },
+            computed: {},
+            mounted() {
+                this.fetchData();
+                this.fetchCategorias();
+            }
+        });
+    </script>
+</body>
+</html>
